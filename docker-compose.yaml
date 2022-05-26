@@ -1,3 +1,4 @@
+version: '3.7'
 services:
   # DATABASE SERVICES
   db:    
@@ -32,8 +33,8 @@ services:
       - FLASK_SERVER_ADDR=app:8000
     ports:
       - "80:80"
-    depends_on: 
-      - app
+    # depends_on: 
+    #   - app
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:80/health-check || exit 1"]
       interval: 10s
@@ -53,9 +54,9 @@ services:
       - db-password
     ports: 
       - '8000:8000'    
-    depends_on:
-      db:
-        condition: service_healthy
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
     command: gunicorn -w 3 -t 60 -b 0.0.0.0:8000 app:app
     networks:
       - backnet
