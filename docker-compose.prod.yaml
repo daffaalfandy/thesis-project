@@ -1,0 +1,72 @@
+version: '3.7'
+services:
+  # DATABASE SERVICES
+  db:    
+    image: mariadb:10.6.4-focal
+    command: '--default-authentication-plugin=mysql_native_password'
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 3s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - backnet
+    environment:
+      - MYSQL_DATABASE=thesis
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 3306
+      - 33060
+  
+   # PROXY / WEB SERVER
+  nginx:
+    build: nginx
+    restart: always
+    volumes:
+      - ./nginx/default.conf:/tmp/default.conf
+    environment:
+      - FLASK_SERVER_ADDR=app:8000
+    ports:
+      - "80:80"
+    # depends_on: 
+    #   - app
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:80/health-check || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    command: /app/start.sh
+    networks:
+      - frontnet
+
+  # BACKEND SERVICES
+  app:
+    image: daffaalfandy/thesis-project_app
+    volumes:
+      - ./app:/home/app
+    restart: always
+    secrets:
+      - db-password
+    ports: 
+      - '8000:8000'    
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+    command: gunicorn -w 3 -t 60 -b 0.0.0.0:8000 app:app
+    networks:
+      - backnet
+      - frontnet
+
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: db/password.txt
+networks:
+  backnet:
+  frontnet:
