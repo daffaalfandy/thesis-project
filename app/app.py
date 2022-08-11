@@ -1,6 +1,7 @@
-import os
+import socket
 import random
 import string
+import json
 from flask import Flask, request
 import mysql.connector
 
@@ -39,12 +40,15 @@ def eratosthenes(n):
                 all.append(i * j)
                 j += 1
         i += 2
+    return all
     
 app = Flask(__name__)
 conn = None
 
 @app.route('/')
 def home():
+    hostname=socket.gethostname()
+    server_ipaddr=socket.gethostbyname(hostname)
     ip_addr = request.remote_addr
     random_str = "".join((random.choice(string.ascii_uppercase) for x in range(90)))
     
@@ -55,10 +59,20 @@ def home():
     
     conn.insert_ip_addr(ip_addr, random_str)
     
-    eratosthenes(1000)
+    prime_number = eratosthenes(500)
     
-    response = '<h1> Client with IP Address: {} </h1>'.format(ip_addr)
-    response += '</br> <h1> Have a random string: {} </h1>'.format(random_str)
-    response += '</br> <strong> <h2> Served by Server with IP Addreess: {} </h2> </strong>'.format(WEBSERVER_IPADDR)
+    data = {
+        "client_ipaddr": ip_addr,
+        "served_by": hostname,
+        "server_ipaddr": server_ipaddr,
+        "random_str": random_str,
+        "prime_number": prime_number
+    }
+
+    response = app.response_class(
+        response = json.dumps(data),
+        status = 200,
+        mimetype = 'application/json'
+    )
     
     return response
