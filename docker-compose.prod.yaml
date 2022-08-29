@@ -23,9 +23,10 @@ services:
       - 3306
       - 33060
   
-   # PROXY / WEB SERVER
+  # PROXY / WEB SERVER
   nginx:
-    build: nginx
+    # build: nginx
+    image: daffaalfandy/thesis-project_nginx:latest
     restart: always
     volumes:
       - ./nginx/default.conf:/tmp/default.conf
@@ -33,8 +34,6 @@ services:
       - FLASK_SERVER_ADDR=app:8000
     ports:
       - "80:80"
-    # depends_on: 
-    #   - app
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:80/health-check || exit 1"]
       interval: 10s
@@ -46,18 +45,18 @@ services:
 
   # BACKEND SERVICES
   app:
-    image: daffaalfandy/thesis-project_app
+    image: daffaalfandy/thesis-project_app:latest
     volumes:
       - ./app:/home/app
     restart: always
     secrets:
       - db-password
     ports: 
-      - '8000:8000'    
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
+      - '8000:8000'
     command: gunicorn -w 3 -t 60 -b 0.0.0.0:8000 app:app
+    environment:
+      - IP_ADDR=localhost
+      - HOST=webserver
     networks:
       - backnet
       - frontnet

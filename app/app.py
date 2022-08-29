@@ -1,11 +1,12 @@
-import socket
 import random
 import string
 import json
+import os
 from flask import Flask, request
 import mysql.connector
 
-WEBSERVER_IPADDR = "192.168.18.101"
+WEBSERVER_IPADDR = os.getenv('IP_ADDR')
+WEBSERVER_HOST = os.getenv('HOST')
 class DBManager:
     def __init__(self, password_file=None):
         pf = open(password_file, 'r')
@@ -48,10 +49,8 @@ conn = None
 
 @app.route('/')
 def home():
-    hostname=socket.gethostname()
-    server_ipaddr=socket.gethostbyname(hostname)
     ip_addr = request.remote_addr
-    random_str = "".join((random.choice(string.ascii_uppercase) for x in range(90)))
+    random_str = "".join((random.choice(string.ascii_uppercase) for x in range(50)))
     
     global conn
     if not conn:
@@ -64,8 +63,8 @@ def home():
     
     data = {
         "client_ipaddr": ip_addr,
-        "served_by": hostname,
-        "server_ipaddr": server_ipaddr,
+        "served_by": WEBSERVER_HOST,
+        "server_ipaddr": WEBSERVER_IPADDR,
         "random_str": random_str,
         "prime_number": prime_number
     }
