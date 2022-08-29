@@ -8,15 +8,13 @@ import mysql.connector
 WEBSERVER_IPADDR = os.getenv('IP_ADDR')
 WEBSERVER_HOST = os.getenv('HOST')
 class DBManager:
-    def __init__(self, password_file=None):
-        pf = open(password_file, 'r')
+    def __init__(self):        
         self.connection = mysql.connector.connect(
             user='root',
-            password=pf.read(),
+            password=os.getenv('MYSQL_ROOT_PASSWORD'),
             host='db',
-            database='thesis',            
+            database=os.getenv('MYSQL_DATABASE'),
         )
-        pf.close()
         self.cursor = self.connection.cursor()
         
     def populate_db(self):
@@ -54,7 +52,7 @@ def home():
     
     global conn
     if not conn:
-        conn = DBManager(password_file='/run/secrets/db-password')
+        conn = DBManager()
         conn.populate_db()
     
     conn.insert_ip_addr(ip_addr, random_str)

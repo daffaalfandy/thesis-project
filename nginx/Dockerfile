@@ -2,6 +2,7 @@ FROM nginx:1.19.7-alpine
 
 RUN apk add bash
 
+COPY --chown=nginx:nginx default.conf /tmp/default.conf
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
 COPY --chown=nginx:nginx start.sh /app/start.sh
 

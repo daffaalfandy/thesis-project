@@ -10,15 +10,13 @@ services:
       interval: 3s
       retries: 5
       start_period: 30s
-    secrets:
-      - db-password
     volumes:
       - db-data:/var/lib/mysql
     networks:
       - backnet
     environment:
-      - MYSQL_DATABASE=thesis
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     expose:
       - 3306
       - 33060
@@ -48,23 +46,20 @@ services:
     volumes:
       - ./app:/home/app
     restart: always
-    secrets:
-      - db-password
     ports: 
       - '8000:8000'
     command: gunicorn -w 3 -t 60 -b 0.0.0.0:8000 app:app
     environment:
-      - IP_ADDR=localhost
-      - HOST=webserver
+      - IP_ADDR=${IP_ADDR}
+      - HOST=${HOSTNAME}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     networks:
       - backnet
       - frontnet
 
 volumes:
   db-data:
-secrets:
-  db-password:
-    file: db/password.txt
 networks:
   backnet:
   frontnet:
